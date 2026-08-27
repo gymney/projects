@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Approved ({{ approved|length }})</h2>
+{% if approved %}
+<ul>
+  {% for clip in approved %}
+  <li>{{ clip['source_file'].split('/')[-1] }} &mdash; {{ "%.1f"|format(clip['start_time']) }}s-{{ "%.1f"|format(clip['end_time']) }}s &mdash; <b>{{ clip['category'] }}</b></li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty">Nothing approved yet.</div>
+{% endif %}
+
+<h2>Rejected ({{ rejected|length }})</h2>
+{% if rejected %}
+<ul>
+  {% for clip in rejected %}
+  <li>{{ clip['source_file'].split('/')[-1] }} &mdash; {{ "%.1f"|format(clip['start_time']) }}s-{{ "%.1f"|format(clip['end_time']) }}s</li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty">Nothing rejected yet.</div>
+{% endif %}
+
+{% endblock %}

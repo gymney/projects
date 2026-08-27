@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Clip Finder</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #16181d; color: #e8e8e8; margin: 0; padding: 24px; }
+    a { color: #7dbbff; }
+    h1 { margin-top: 0; }
+    nav { margin-bottom: 20px; }
+    nav a { margin-right: 16px; text-decoration: none; }
+    .upload-box { background: #21242c; border: 1px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+    .flash { background: #33402a; border: 1px solid #4a5c3a; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }
+    .clip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .clip-card { background: #21242c; border: 1px solid #333; border-radius: 8px; padding: 12px; }
+    .clip-card video { width: 100%; border-radius: 4px; background: #000; }
+    .clip-meta { font-size: 13px; color: #999; margin: 8px 0; }
+    .clip-actions { display: flex; gap: 8px; align-items: center; }
+    select, button { padding: 6px 10px; border-radius: 6px; border: 1px solid #444; background: #2a2e38; color: #eee; }
+    button.approve { background: #2f6b3f; border-color: #3d8a52; cursor: pointer; }
+    button.reject { background: #6b2f2f; border-color: #8a3d3d; cursor: pointer; }
+    .empty { color: #888; padding: 40px 0; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>🎮 Clip Finder</h1>
+  <nav>
+    <a href="{{ url_for('review_queue') }}">Review Queue</a>
+    <a href="{{ url_for('history') }}">History</a>
+  </nav>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</body>
+</html>
