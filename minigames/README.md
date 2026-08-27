@@ -43,3 +43,7 @@ lost again.
   SQLite
 - **Frontend:** stays plain HTML/CSS/JS — no framework needed for games this
   size
+
+upcoming
+- new size selection for rune match
+- index.html that redirects to each minigame
