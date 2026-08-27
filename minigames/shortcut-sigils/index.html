@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Rune Match</title>
+<title>Shortcut Sigils</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Spectral:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg: #191129;
     --bg-deep: #120c1f;
     --panel: #241a3a;
-    --card-back: #2e2350;
-    --card-back-edge: #423366;
+    --panel-edge: rgba(201,164,97,0.25);
     --parchment: #efe4cd;
     --gold: #c9a461;
     --gold-bright: #e6c98a;
@@ -23,357 +22,338 @@
   }
   *{box-sizing:border-box;}
   html,body{
-    margin:0; padding:0; height:100%;
+    margin:0; padding:0; min-height:100%;
     background: radial-gradient(ellipse at top, var(--bg) 0%, var(--bg-deep) 70%);
-    font-family: 'Spectral', serif;
+    font-family:'Spectral', serif;
     color: var(--ink);
     display:flex;
     justify-content:center;
     -webkit-font-smoothing:antialiased;
   }
-  .stage{
-    width:100%;
-    max-width:640px;
-    padding: 28px 20px 40px;
-  }
-  .masthead{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    margin-bottom: 22px;
-  }
+  .stage{ width:100%; max-width:640px; padding: 28px 20px 44px; }
+  .masthead{ display:flex; flex-direction:column; align-items:center; margin-bottom: 18px; }
   .masthead h1{
-    font-family:'Cinzel', serif;
-    font-weight:700;
-    letter-spacing: 0.14em;
-    font-size: clamp(22px, 5vw, 30px);
-    margin:0 0 4px;
-    color: var(--gold-bright);
+    font-family:'Cinzel', serif; font-weight:700; letter-spacing:0.13em;
+    font-size: clamp(22px, 5vw, 30px); margin:0 0 4px; color: var(--gold-bright);
     text-shadow: 0 0 18px rgba(201,164,97,0.35);
   }
-  .masthead .sub{
-    font-size:13px;
-    letter-spacing:0.08em;
-    color: var(--muted);
-    font-family:'IBM Plex Mono', monospace;
+  .masthead .sub{ font-size:13px; letter-spacing:0.08em; color: var(--muted); font-family:'IBM Plex Mono', monospace; }
+
+  .tabs{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin: 20px 0 22px; }
+  .tab{
+    font-family:'IBM Plex Mono', monospace; font-size: 12px; letter-spacing:0.04em;
+    background: var(--panel); border: 1px solid var(--panel-edge); color: var(--muted);
+    padding: 8px 14px; border-radius: 8px; cursor:pointer; transition: all 0.2s ease;
   }
-  .hud{
-    display:flex;
-    justify-content:center;
-    gap: 10px;
-    margin: 18px 0 22px;
-    flex-wrap: wrap;
-  }
+  .tab:hover{ color: var(--ink); }
+  .tab.active{ border-color: var(--gold); color: var(--gold-bright); background: rgba(201,164,97,0.1); }
+
+  .hud{ display:flex; justify-content:center; gap:10px; margin-bottom: 20px; flex-wrap:wrap; }
   .hud-item{
-    background: var(--panel);
-    border: 1px solid rgba(201,164,97,0.25);
-    border-radius: 10px;
-    padding: 8px 16px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    text-align:center;
-    min-width: 84px;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 10px;
+    padding: 8px 16px; font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted);
+    text-align:center; min-width: 84px;
   }
-  .hud-item .val{
-    display:block;
-    font-size: 18px;
-    color: var(--gold-bright);
-    margin-top: 2px;
-    font-weight:500;
+  .hud-item .val{ display:block; font-size: 18px; color: var(--gold-bright); margin-top:2px; font-weight:500; }
+
+  .quiz-panel{
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 14px;
+    padding: 28px 24px; min-height: 220px;
   }
-  .board{
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    perspective: 900px;
+  .prompt-label{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em;
+    color: var(--muted); text-align:center; margin-bottom: 10px;
   }
-  .cell{
-    aspect-ratio: 3/4;
-    position:relative;
+  .prompt-text{
+    font-size: clamp(17px, 4vw, 20px); text-align:center; color: var(--ink);
+    margin: 0 0 24px; line-height: 1.4;
   }
-  .card{
-    width:100%; height:100%;
-    position:relative;
-    transform-style: preserve-3d;
-    transition: transform 0.45s cubic-bezier(.2,.7,.3,1);
-    cursor:pointer;
-  }
-  .card.flipped{
-    transform: rotateY(180deg);
-  }
-  .card.matched{
-    cursor: default;
-  }
-  .face{
-    position:absolute; inset:0;
+  .options{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 420px){ .options{ grid-template-columns: 1fr; } }
+
+  .keycap{
+    font-family:'IBM Plex Mono', monospace; font-size: 14px; font-weight:500;
+    background: linear-gradient(160deg, #3a2c5c, #2b2048);
+    border: 1px solid rgba(201,164,97,0.3);
+    border-bottom: 3px solid rgba(0,0,0,0.35);
+    color: var(--parchment);
+    padding: 14px 12px;
     border-radius: 9px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+    cursor:pointer;
+    text-align:center;
+    transition: transform 0.12s ease, border-color 0.2s ease, background 0.2s ease;
   }
-  .face-back{
-    background:
-      radial-gradient(circle at 50% 40%, var(--card-back-edge), var(--card-back) 70%);
-    border: 1px solid rgba(201,164,97,0.35);
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2), 0 3px 8px rgba(0,0,0,0.4);
+  .keycap:hover{ transform: translateY(-2px); border-color: var(--gold); }
+  .keycap:active{ transform: translateY(0px); }
+  .keycap.correct{
+    background: linear-gradient(160deg, #3a5c46, #2a4433);
+    border-color: var(--emerald);
+    box-shadow: 0 0 0 1px var(--emerald), 0 0 16px rgba(78,154,107,0.35);
   }
-  .face-back::after{
-    content:"";
-    width: 46%;
-    height: 46%;
-    border: 1.5px solid rgba(201,164,97,0.55);
-    transform: rotate(45deg);
-    border-radius: 3px;
-  }
-  .face-front{
-    background: linear-gradient(160deg, var(--parchment), #e2d5b6);
-    transform: rotateY(180deg);
-    font-size: clamp(26px, 6vw, 34px);
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
-    color: #2a2013;
-  }
-  .card.matched .face-front{
-    background: linear-gradient(160deg, #d8e9dd, #bfdcc9);
-    box-shadow: 0 0 0 2px var(--emerald), inset 0 0 14px rgba(78,154,107,0.35);
-  }
-  @keyframes settle{
-    0%{ transform: rotateY(180deg) scale(1); }
-    35%{ transform: rotateY(180deg) scale(1.08); }
-    100%{ transform: rotateY(180deg) scale(1); }
-  }
-  .card.matched{
-    animation: settle 0.4s ease-out;
-  }
-  .card.mismatch .face-back{
+  .keycap.wrong{
+    background: linear-gradient(160deg, #5c3a34, #442a26);
+    border-color: var(--ember);
+    box-shadow: 0 0 0 1px var(--ember);
     animation: shake 0.35s ease;
   }
+  .keycap.disabled{ cursor:default; pointer-events:none; opacity: 0.85; }
   @keyframes shake{
     0%,100%{ transform: translateX(0); }
     25%{ transform: translateX(-3px); }
     75%{ transform: translateX(3px); }
   }
-  .footer-row{
-    display:flex;
-    justify-content:center;
-    margin-top: 24px;
+
+  .feedback{
+    min-height: 20px; text-align:center; font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px; margin-top: 18px; color: var(--muted);
   }
+  .feedback.good{ color: var(--emerald); }
+  .feedback.bad{ color: var(--ember); }
+
+  .footer-row{ display:flex; justify-content:center; gap:10px; margin-top: 22px; }
   .btn{
-    font-family:'IBM Plex Mono', monospace;
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold-bright);
-    padding: 9px 22px;
-    border-radius: 7px;
-    font-size: 12.5px;
-    letter-spacing: 0.06em;
-    cursor:pointer;
-    transition: background 0.2s ease, color 0.2s ease;
+    font-family:'IBM Plex Mono', monospace; background: transparent; border: 1px solid var(--gold);
+    color: var(--gold-bright); padding: 9px 22px; border-radius: 7px; font-size: 12.5px;
+    letter-spacing: 0.06em; cursor:pointer; transition: background 0.2s ease, color 0.2s ease;
   }
-  .btn:hover, .btn:focus-visible{
-    background: var(--gold);
-    color: #23180a;
-    outline: none;
+  .btn:hover, .btn:focus-visible{ background: var(--gold); color: #23180a; outline:none; }
+
+  .round-end{ text-align:center; }
+  .round-end h2{
+    font-family:'Cinzel', serif; color: var(--gold-bright); font-size: 18px; letter-spacing:0.05em; margin: 0 0 8px;
   }
-  .win-banner{
-    text-align:center;
-    margin: 18px 0 0;
-    font-family:'Cinzel', serif;
-    color: var(--emerald);
-    font-size: 15px;
-    letter-spacing: 0.05em;
-    min-height: 20px;
-    opacity:0;
-    transition: opacity 0.4s ease;
-  }
-  .win-banner.show{ opacity:1; }
-  @media (prefers-reduced-motion: reduce){
-    .card, .card.matched, .card.mismatch .face-back{ animation:none !important; transition: transform 0.2s linear; }
-  }
+  .round-end p{ color: var(--muted); font-size: 14px; margin: 0 0 20px; }
 </style>
 </head>
 <body>
 <div class="stage">
   <div class="masthead">
-    <h1>Rune Match</h1>
-    <div class="sub">FIND EVERY PAIRED SIGIL</div>
+    <h1>Shortcut Sigils</h1>
+    <div class="sub">MASTER THE KEYS OF EACH REALM</div>
   </div>
+
+  <div class="tabs" id="tabs"></div>
 
   <div class="hud">
-    <div class="hud-item">MOVES<span class="val" id="moves">0</span></div>
-    <div class="hud-item">TIME<span class="val" id="timer">0:00</span></div>
-    <div class="hud-item">BEST<span class="val" id="best">—</span></div>
+    <div class="hud-item">SCORE<span class="val" id="score">0</span></div>
+    <div class="hud-item">STREAK<span class="val" id="streak">0</span></div>
+    <div class="hud-item">ROUND<span class="val" id="round">1 / 8</span></div>
   </div>
 
-  <div class="board" id="board"></div>
-
-  <div class="win-banner" id="winBanner">The grimoire is complete.</div>
+  <div class="quiz-panel" id="quizPanel"></div>
 
   <div class="footer-row">
-    <button class="btn" id="resetBtn">NEW GRIMOIRE</button>
+    <button class="btn" id="restartBtn">RESTART REALM</button>
   </div>
 </div>
 
 <script>
-  const SYMBOLS = ['🜁','🜂','🜃','🜄','☾','☉','✦','⚷','⚶','☽'];
-  const board = document.getElementById('board');
-  const movesEl = document.getElementById('moves');
-  const timerEl = document.getElementById('timer');
-  const bestEl = document.getElementById('best');
-  const winBanner = document.getElementById('winBanner');
-  const resetBtn = document.getElementById('resetBtn');
-
-  let deck = [];
-  let flipped = [];
-  let matchedCount = 0;
-  let moves = 0;
-  let lockBoard = false;
-  let seconds = 0;
-  let timerHandle = null;
-  let started = false;
-
-  function shuffle(arr){
-    for(let i = arr.length - 1; i > 0; i--){
-      const j = Math.floor(Math.random() * (i+1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+  const REALMS = {
+    excel: {
+      label: 'Excel',
+      questions: [
+        { prompt: 'Insert a new row above the selected row', answer: 'Ctrl + Shift + +', distractors: ['Ctrl + +', 'Ctrl + N', 'Alt + I'] },
+        { prompt: 'Open the "Go To" dialog', answer: 'Ctrl + G', distractors: ['Ctrl + F', 'F5', 'Ctrl + J'] },
+        { prompt: 'Autosum the selected range', answer: 'Alt + =', distractors: ['Ctrl + =', 'Ctrl + Shift + S', 'Alt + S'] },
+        { prompt: 'Toggle absolute/relative cell reference in a formula', answer: 'F4', distractors: ['F2', 'Ctrl + R', 'Shift + F4'] },
+        { prompt: 'Fill selected cells down from the cell above', answer: 'Ctrl + D', distractors: ['Ctrl + Down', 'Ctrl + F', 'Ctrl + Shift + D'] },
+        { prompt: 'Open the Format Cells dialog', answer: 'Ctrl + 1', distractors: ['Ctrl + F1', 'Ctrl + Shift + F', 'Alt + 1'] },
+        { prompt: 'Create a chart from the selected data', answer: 'Alt + F1', distractors: ['F11', 'Ctrl + Shift + C', 'Alt + C'] },
+        { prompt: 'Wrap text within a cell', answer: 'Alt + H, W', distractors: ['Ctrl + W', 'Ctrl + Shift + W', 'Alt + W'] },
+      ]
+    },
+    discord: {
+      label: 'Discord',
+      questions: [
+        { prompt: 'Mark a server or channel as read', answer: 'Shift + Esc', distractors: ['Ctrl + R', 'Esc', 'Ctrl + Shift + R'] },
+        { prompt: 'Toggle mute for your microphone', answer: 'Ctrl + Shift + M', distractors: ['Ctrl + M', 'Ctrl + Shift + D', 'Alt + M'] },
+        { prompt: 'Switch to the next unread channel', answer: 'Alt + Down', distractors: ['Ctrl + Down', 'Tab', 'Alt + Shift + Down'] },
+        { prompt: 'Upload a file to the current channel', answer: 'Ctrl + Shift + U', distractors: ['Ctrl + U', 'Ctrl + O', 'Ctrl + Shift + F'] },
+        { prompt: 'Toggle deafen (mute all incoming audio)', answer: 'Ctrl + Shift + D', distractors: ['Ctrl + D', 'Ctrl + Shift + M', 'Alt + D'] },
+        { prompt: 'Open Quick Switcher to jump to a server or DM', answer: 'Ctrl + K', distractors: ['Ctrl + P', 'Ctrl + J', 'Ctrl + Shift + K'] },
+        { prompt: 'Edit your most recent message', answer: 'Up Arrow (in empty message box)', distractors: ['Ctrl + E', 'F2', 'Ctrl + Up'] },
+        { prompt: 'Create a line break within a message', answer: 'Shift + Enter', distractors: ['Ctrl + Enter', 'Alt + Enter', 'Enter'] },
+      ]
+    },
+    word: {
+      label: 'Word',
+      questions: [
+        { prompt: 'Center-align the selected paragraph', answer: 'Ctrl + E', distractors: ['Ctrl + C', 'Ctrl + Shift + E', 'Alt + E'] },
+        { prompt: 'Insert a page break', answer: 'Ctrl + Enter', distractors: ['Ctrl + Shift + Enter', 'Alt + Enter', 'Ctrl + P'] },
+        { prompt: 'Open the Word Count dialog', answer: 'Ctrl + Shift + G', distractors: ['Ctrl + W', 'Ctrl + Alt + G', 'Ctrl + Shift + W'] },
+        { prompt: 'Apply superscript formatting', answer: 'Ctrl + Shift + =', distractors: ['Ctrl + =', 'Ctrl + Shift + -', 'Alt + ='] },
+        { prompt: 'Show/hide formatting marks (pilcrows, spaces)', answer: 'Ctrl + Shift + 8', distractors: ['Ctrl + 8', 'Ctrl + Shift + P', 'Alt + 8'] },
+        { prompt: 'Insert a comment on the selected text', answer: 'Ctrl + Alt + M', distractors: ['Ctrl + M', 'Ctrl + Shift + C', 'Alt + C'] },
+        { prompt: 'Go to the beginning of the document', answer: 'Ctrl + Home', distractors: ['Ctrl + Up', 'Home', 'Ctrl + Shift + Home'] },
+        { prompt: 'Repeat the last action', answer: 'Ctrl + Y', distractors: ['Ctrl + R', 'Ctrl + Shift + Z', 'F4'] },
+      ]
+    },
+    confluence: {
+      label: 'Confluence',
+      questions: [
+        { prompt: 'Create a new page', answer: 'C', distractors: ['N', 'Ctrl + N', 'Shift + C'] },
+        { prompt: 'Open the quick search', answer: '/', distractors: ['Ctrl + K', 'S', 'Ctrl + F'] },
+        { prompt: 'Save the page you\u2019re editing', answer: 'Ctrl + S', distractors: ['Ctrl + Enter', 'Ctrl + Shift + S', 'Alt + S'] },
+        { prompt: 'Insert a table while editing', answer: 'Ctrl + Shift + T', distractors: ['Ctrl + T', 'Ctrl + Alt + T', 'Shift + T'] },
+        { prompt: 'Add a mention to another person', answer: '@', distractors: ['#', '!', '&'] },
+        { prompt: 'Bold the selected text', answer: 'Ctrl + B', distractors: ['Ctrl + Shift + B', 'Ctrl + I', 'Alt + B'] },
+        { prompt: 'Insert a link', answer: 'Ctrl + K', distractors: ['Ctrl + L', 'Ctrl + Shift + K', 'Alt + K'] },
+        { prompt: 'View recently viewed pages', answer: 'G, then R', distractors: ['G, then H', 'R', 'Ctrl + R'] },
+      ]
+    },
+    pc: {
+      label: 'General PC',
+      questions: [
+        { prompt: 'Switch between open applications', answer: 'Alt + Tab', distractors: ['Ctrl + Tab', 'Win + Tab', 'Alt + Esc'] },
+        { prompt: 'Lock your computer', answer: 'Win + L', distractors: ['Ctrl + L', 'Win + Q', 'Ctrl + Alt + L'] },
+        { prompt: 'Open Task Manager directly', answer: 'Ctrl + Shift + Esc', distractors: ['Ctrl + Alt + Del', 'Ctrl + Esc', 'Alt + Esc'] },
+        { prompt: 'Rename the selected file or folder', answer: 'F2', distractors: ['F5', 'Ctrl + R', 'Alt + Enter'] },
+        { prompt: 'Snap the current window to the left half of the screen', answer: 'Win + Left Arrow', distractors: ['Alt + Left Arrow', 'Ctrl + Left Arrow', 'Win + Shift + Left'] },
+        { prompt: 'Open a new virtual desktop', answer: 'Win + Ctrl + D', distractors: ['Win + D', 'Win + Tab', 'Ctrl + Shift + D'] },
+        { prompt: 'Take a screenshot of a selected area', answer: 'Win + Shift + S', distractors: ['Win + PrtScn', 'Ctrl + Shift + S', 'Alt + PrtScn'] },
+        { prompt: 'Permanently delete a file (skip the Recycle Bin)', answer: 'Shift + Delete', distractors: ['Ctrl + Delete', 'Alt + Delete', 'Ctrl + Shift + Delete'] },
+      ]
     }
-    return arr;
-  }
+  };
 
-  function formatTime(s){
-    const m = Math.floor(s/60);
-    const r = s % 60;
-    return m + ':' + String(r).padStart(2,'0');
-  }
+  const tabsEl = document.getElementById('tabs');
+  const scoreEl = document.getElementById('score');
+  const streakEl = document.getElementById('streak');
+  const roundEl = document.getElementById('round');
+  const quizPanel = document.getElementById('quizPanel');
+  const restartBtn = document.getElementById('restartBtn');
 
-  function startTimer(){
-    if(started) return;
-    started = true;
-    timerHandle = setInterval(() => {
-      seconds++;
-      timerEl.textContent = formatTime(seconds);
-    }, 1000);
-  }
+  let currentRealmKey = 'excel';
+  let order = [];
+  let qIndex = 0;
+  let score = 0;
+  let streak = 0;
+  let answered = false;
 
-  function stopTimer(){
-    clearInterval(timerHandle);
-    started = false;
-  }
-
-  function loadBest(){
-    const raw = localStorageSafeGet();
-    bestEl.textContent = raw ? raw : '—';
-  }
-
-  // In-memory only fallback since this artifact avoids localStorage.
-  let bestScore = null;
-  function localStorageSafeGet(){
-    return bestScore;
-  }
-
-  function maybeUpdateBest(){
-    const scoreLabel = moves + ' / ' + formatTime(seconds);
-    if(bestScore === null){
-      bestScore = scoreLabel;
-    } else {
-      const [prevMoves] = bestScore.split(' / ');
-      if(moves < parseInt(prevMoves, 10)){
-        bestScore = scoreLabel;
-      }
-    }
-    bestEl.textContent = bestScore;
-  }
-
-  function buildDeck(){
-    const pairs = shuffle([...SYMBOLS, ...SYMBOLS]);
-    return pairs;
-  }
-
-  function render(){
-    board.innerHTML = '';
-    deck.forEach((symbol, idx) => {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.index = idx;
-
-      const back = document.createElement('div');
-      back.className = 'face face-back';
-
-      const front = document.createElement('div');
-      front.className = 'face face-front';
-      front.textContent = symbol;
-
-      card.appendChild(back);
-      card.appendChild(front);
-      cell.appendChild(card);
-      board.appendChild(cell);
-
-      card.addEventListener('click', () => onCardClick(card, idx));
+  function buildTabs(){
+    tabsEl.innerHTML = '';
+    Object.entries(REALMS).forEach(([key, realm]) => {
+      const tab = document.createElement('div');
+      tab.className = 'tab' + (key === currentRealmKey ? ' active' : '');
+      tab.textContent = realm.label;
+      tab.addEventListener('click', () => {
+        if(key === currentRealmKey) return;
+        currentRealmKey = key;
+        startRealm();
+        buildTabs();
+      });
+      tabsEl.appendChild(tab);
     });
   }
 
-  function onCardClick(card, idx){
-    if(lockBoard) return;
-    if(card.classList.contains('flipped') || card.classList.contains('matched')) return;
-
-    startTimer();
-    card.classList.add('flipped');
-    flipped.push({ card, idx });
-
-    if(flipped.length === 2){
-      moves++;
-      movesEl.textContent = moves;
-      lockBoard = true;
-      const [a, b] = flipped;
-      if(deck[a.idx] === deck[b.idx]){
-        setTimeout(() => {
-          a.card.classList.add('matched');
-          b.card.classList.add('matched');
-          flipped = [];
-          lockBoard = false;
-          matchedCount += 2;
-          if(matchedCount === deck.length){
-            stopTimer();
-            maybeUpdateBest();
-            winBanner.classList.add('show');
-          }
-        }, 380);
-      } else {
-        a.card.classList.add('mismatch');
-        b.card.classList.add('mismatch');
-        setTimeout(() => {
-          a.card.classList.remove('flipped', 'mismatch');
-          b.card.classList.remove('flipped', 'mismatch');
-          flipped = [];
-          lockBoard = false;
-        }, 800);
-      }
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [a[i], a[j]] = [a[j], a[i]];
     }
+    return a;
   }
 
-  function newGame(){
-    deck = buildDeck();
-    flipped = [];
-    matchedCount = 0;
-    moves = 0;
-    seconds = 0;
-    lockBoard = false;
-    stopTimer();
-    movesEl.textContent = '0';
-    timerEl.textContent = '0:00';
-    winBanner.classList.remove('show');
-    render();
+  function startRealm(){
+    order = shuffle(REALMS[currentRealmKey].questions.map((_, i) => i));
+    qIndex = 0;
+    score = 0;
+    streak = 0;
+    answered = false;
+    updateHud();
+    renderQuestion();
   }
 
-  resetBtn.addEventListener('click', newGame);
+  function updateHud(){
+    scoreEl.textContent = score;
+    streakEl.textContent = streak;
+    roundEl.textContent = (qIndex + 1) + ' / ' + order.length;
+  }
 
-  loadBest();
-  newGame();
+  function renderQuestion(){
+    if(qIndex >= order.length){
+      renderRoundEnd();
+      return;
+    }
+    answered = false;
+    updateHud();
+    const q = REALMS[currentRealmKey].questions[order[qIndex]];
+    const options = shuffle([q.answer, ...q.distractors]);
+
+    quizPanel.innerHTML = '';
+    const label = document.createElement('div');
+    label.className = 'prompt-label';
+    label.textContent = REALMS[currentRealmKey].label.toUpperCase() + ' \u2014 WHAT\u2019S THE SHORTCUT?';
+    const prompt = document.createElement('div');
+    prompt.className = 'prompt-text';
+    prompt.textContent = q.prompt;
+
+    const optionsWrap = document.createElement('div');
+    optionsWrap.className = 'options';
+
+    options.forEach(opt => {
+      const keycap = document.createElement('div');
+      keycap.className = 'keycap';
+      keycap.textContent = opt;
+      keycap.addEventListener('click', () => onAnswer(keycap, opt, q.answer, optionsWrap));
+      optionsWrap.appendChild(keycap);
+    });
+
+    const feedback = document.createElement('div');
+    feedback.className = 'feedback';
+    feedback.id = 'feedback';
+
+    quizPanel.appendChild(label);
+    quizPanel.appendChild(prompt);
+    quizPanel.appendChild(optionsWrap);
+    quizPanel.appendChild(feedback);
+  }
+
+  function onAnswer(keycapEl, chosen, correctAnswer, optionsWrap){
+    if(answered) return;
+    answered = true;
+    const feedback = document.getElementById('feedback');
+    const allKeycaps = optionsWrap.querySelectorAll('.keycap');
+    allKeycaps.forEach(k => k.classList.add('disabled'));
+
+    if(chosen === correctAnswer){
+      keycapEl.classList.add('correct');
+      score += 10 + streak * 2;
+      streak++;
+      feedback.textContent = 'Correct \u2014 sigil bound.';
+      feedback.className = 'feedback good';
+    } else {
+      keycapEl.classList.add('wrong');
+      streak = 0;
+      allKeycaps.forEach(k => { if(k.textContent === correctAnswer) k.classList.add('correct'); });
+      feedback.textContent = 'The true sigil was ' + correctAnswer;
+      feedback.className = 'feedback bad';
+    }
+    updateHud();
+    setTimeout(() => {
+      qIndex++;
+      renderQuestion();
+    }, 1100);
+  }
+
+  function renderRoundEnd(){
+    quizPanel.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'round-end';
+    const h2 = document.createElement('h2');
+    h2.textContent = 'Realm Cleared';
+    const p = document.createElement('p');
+    p.textContent = 'Final score: ' + score + ' \u00b7 ' + REALMS[currentRealmKey].label;
+    wrap.appendChild(h2);
+    wrap.appendChild(p);
+    quizPanel.appendChild(wrap);
+  }
+
+  restartBtn.addEventListener('click', startRealm);
+
+  buildTabs();
+  startRealm();
 </script>
 </body>
 </html>
