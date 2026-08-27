@@ -1,57 +1,53 @@
-# Disc Golf Course Tracker
+# Disc Golf Course Tracker — Web GUI
 
-A CLI app for tracking disc golf courses, rounds, and stats — fully built,
-no external services or API keys needed.
+A Flask web front end over the same disc golf tracker, styled to match the
+mini game suite (parchment/gold/indigo theme).
 
-## Status: complete and working
+## Status: complete and tested
 
-Tested end-to-end (course creation, round logging, history, and stats).
-
-## Features
-
-- **Courses** — add courses with per-hole par and optional distance
-- **Rounds** — log a round hole-by-hole, with date and optional notes
-- **History** — see every round played, with score vs. par
-- **Stats** — average vs. par per course, best round, an improving/trending
-  read comparing your earlier rounds to your more recent ones, and your
-  toughest hole overall (across all courses)
+Every route tested end-to-end (add course, log round, history, stats,
+delete course + cascade).
 
 ## Requirements
 
-- Python 3 (no external packages — standard library only)
+```bash
+pip install flask
+```
 
 ## Running it
 
 ```bash
-python3 disc_golf_tracker.py
+python3 app.py
 ```
 
-That's it. On first run it creates a `discgolf.db` SQLite file in the same
-folder as the script — that's where all your data lives. Delete that file
-any time to start fresh.
+Then open **http://127.0.0.1:5000** in a browser.
 
-You'll get a menu:
+On first run it creates a `discgolf.db` SQLite file in this folder — same
+format as the CLI version, so the two are compatible with each other if you
+ever want to switch between them (just point them at the same folder).
+
+## What's in here
 
 ```
-========================================
-   DISC GOLF COURSE TRACKER
-========================================
- 1. Add a course
- 2. View courses
- 3. Log a round
- 4. View round history
- 5. View stats
- 6. Delete a course
- 0. Quit
-========================================
+app.py              - Flask routes and page logic
+tracker_core.py      - shared DB schema/setup (used by app.py)
+templates/           - Jinja2 HTML templates (one per page)
+static/style.css     - all styling
 ```
 
-Suggested first run: add a course (option 1), log a round or two on it
-(option 3), then check option 5 for stats.
+## Pages
+
+- **Courses** (`/`) — list courses, add new ones, delete existing ones
+- **Log Round** (`/rounds/log`) — pick a course, enter a score per hole
+- **History** (`/history`) — every round logged, with score vs. par
+- **Stats** (`/stats`) — per-course averages, best rounds, trend, and
+  toughest hole overall
 
 ## Notes
 
-- Deleting a course also deletes its holes and any rounds logged on it —
-  it'll ask for confirmation first.
-- The database is just a local SQLite file, so it's portable — copy
-  `discgolf.db` anywhere along with the script and your data comes with it.
+- `app.secret_key` is a hardcoded dev value — fine for local use, but if this
+  ever gets deployed anywhere reachable by others, swap it for a real secret.
+- Deleting a course cascades to its holes and rounds (confirmed via a JS
+  confirm dialog before submitting).
+- `debug=True` is on in `app.py` for local development — turn it off before
+  running this anywhere other than your own machine.
