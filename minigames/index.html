@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rune Match</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #191129;
+    --bg-deep: #120c1f;
+    --panel: #241a3a;
+    --card-back: #2e2350;
+    --card-back-edge: #423366;
+    --parchment: #efe4cd;
+    --gold: #c9a461;
+    --gold-bright: #e6c98a;
+    --emerald: #4e9a6b;
+    --ember: #b5533f;
+    --ink: #e9e0cf;
+    --muted: #9b8fb8;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: radial-gradient(ellipse at top, var(--bg) 0%, var(--bg-deep) 70%);
+    font-family: 'Spectral', serif;
+    color: var(--ink);
+    display:flex;
+    justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .stage{
+    width:100%;
+    max-width:640px;
+    padding: 28px 20px 40px;
+  }
+  .masthead{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom: 22px;
+  }
+  .masthead h1{
+    font-family:'Cinzel', serif;
+    font-weight:700;
+    letter-spacing: 0.14em;
+    font-size: clamp(22px, 5vw, 30px);
+    margin:0 0 4px;
+    color: var(--gold-bright);
+    text-shadow: 0 0 18px rgba(201,164,97,0.35);
+  }
+  .masthead .sub{
+    font-size:13px;
+    letter-spacing:0.08em;
+    color: var(--muted);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .hud{
+    display:flex;
+    justify-content:center;
+    gap: 10px;
+    margin: 18px 0 22px;
+    flex-wrap: wrap;
+  }
+  .hud-item{
+    background: var(--panel);
+    border: 1px solid rgba(201,164,97,0.25);
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align:center;
+    min-width: 84px;
+  }
+  .hud-item .val{
+    display:block;
+    font-size: 18px;
+    color: var(--gold-bright);
+    margin-top: 2px;
+    font-weight:500;
+  }
+  .board{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    perspective: 900px;
+  }
+  .cell{
+    aspect-ratio: 3/4;
+    position:relative;
+  }
+  .card{
+    width:100%; height:100%;
+    position:relative;
+    transform-style: preserve-3d;
+    transition: transform 0.45s cubic-bezier(.2,.7,.3,1);
+    cursor:pointer;
+  }
+  .card.flipped{
+    transform: rotateY(180deg);
+  }
+  .card.matched{
+    cursor: default;
+  }
+  .face{
+    position:absolute; inset:0;
+    border-radius: 9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .face-back{
+    background:
+      radial-gradient(circle at 50% 40%, var(--card-back-edge), var(--card-back) 70%);
+    border: 1px solid rgba(201,164,97,0.35);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2), 0 3px 8px rgba(0,0,0,0.4);
+  }
+  .face-back::after{
+    content:"";
+    width: 46%;
+    height: 46%;
+    border: 1.5px solid rgba(201,164,97,0.55);
+    transform: rotate(45deg);
+    border-radius: 3px;
+  }
+  .face-front{
+    background: linear-gradient(160deg, var(--parchment), #e2d5b6);
+    transform: rotateY(180deg);
+    font-size: clamp(26px, 6vw, 34px);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+    color: #2a2013;
+  }
+  .card.matched .face-front{
+    background: linear-gradient(160deg, #d8e9dd, #bfdcc9);
+    box-shadow: 0 0 0 2px var(--emerald), inset 0 0 14px rgba(78,154,107,0.35);
+  }
+  @keyframes settle{
+    0%{ transform: rotateY(180deg) scale(1); }
+    35%{ transform: rotateY(180deg) scale(1.08); }
+    100%{ transform: rotateY(180deg) scale(1); }
+  }
+  .card.matched{
+    animation: settle 0.4s ease-out;
+  }
+  .card.mismatch .face-back{
+    animation: shake 0.35s ease;
+  }
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    25%{ transform: translateX(-3px); }
+    75%{ transform: translateX(3px); }
+  }
+  .footer-row{
+    display:flex;
+    justify-content:center;
+    margin-top: 24px;
+  }
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    padding: 9px 22px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    cursor:pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .btn:hover, .btn:focus-visible{
+    background: var(--gold);
+    color: #23180a;
+    outline: none;
+  }
+  .win-banner{
+    text-align:center;
+    margin: 18px 0 0;
+    font-family:'Cinzel', serif;
+    color: var(--emerald);
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    min-height: 20px;
+    opacity:0;
+    transition: opacity 0.4s ease;
+  }
+  .win-banner.show{ opacity:1; }
+  @media (prefers-reduced-motion: reduce){
+    .card, .card.matched, .card.mismatch .face-back{ animation:none !important; transition: transform 0.2s linear; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="masthead">
+    <h1>Rune Match</h1>
+    <div class="sub">FIND EVERY PAIRED SIGIL</div>
+  </div>
+
+  <div class="hud">
+    <div class="hud-item">MOVES<span class="val" id="moves">0</span></div>
+    <div class="hud-item">TIME<span class="val" id="timer">0:00</span></div>
+    <div class="hud-item">BEST<span class="val" id="best">—</span></div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="win-banner" id="winBanner">The grimoire is complete.</div>
+
+  <div class="footer-row">
+    <button class="btn" id="resetBtn">NEW GRIMOIRE</button>
+  </div>
+</div>
+
+<script>
+  const SYMBOLS = ['🜁','🜂','🜃','🜄','☾','☉','✦','⚷','⚶','☽'];
+  const board = document.getElementById('board');
+  const movesEl = document.getElementById('moves');
+  const timerEl = document.getElementById('timer');
+  const bestEl = document.getElementById('best');
+  const winBanner = document.getElementById('winBanner');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let deck = [];
+  let flipped = [];
+  let matchedCount = 0;
+  let moves = 0;
+  let lockBoard = false;
+  let seconds = 0;
+  let timerHandle = null;
+  let started = false;
+
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function formatTime(s){
+    const m = Math.floor(s/60);
+    const r = s % 60;
+    return m + ':' + String(r).padStart(2,'0');
+  }
+
+  function startTimer(){
+    if(started) return;
+    started = true;
+    timerHandle = setInterval(() => {
+      seconds++;
+      timerEl.textContent = formatTime(seconds);
+    }, 1000);
+  }
+
+  function stopTimer(){
+    clearInterval(timerHandle);
+    started = false;
+  }
+
+  function loadBest(){
+    const raw = localStorageSafeGet();
+    bestEl.textContent = raw ? raw : '—';
+  }
+
+  // In-memory only fallback since this artifact avoids localStorage.
+  let bestScore = null;
+  function localStorageSafeGet(){
+    return bestScore;
+  }
+
+  function maybeUpdateBest(){
+    const scoreLabel = moves + ' / ' + formatTime(seconds);
+    if(bestScore === null){
+      bestScore = scoreLabel;
+    } else {
+      const [prevMoves] = bestScore.split(' / ');
+      if(moves < parseInt(prevMoves, 10)){
+        bestScore = scoreLabel;
+      }
+    }
+    bestEl.textContent = bestScore;
+  }
+
+  function buildDeck(){
+    const pairs = shuffle([...SYMBOLS, ...SYMBOLS]);
+    return pairs;
+  }
+
+  function render(){
+    board.innerHTML = '';
+    deck.forEach((symbol, idx) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = idx;
+
+      const back = document.createElement('div');
+      back.className = 'face face-back';
+
+      const front = document.createElement('div');
+      front.className = 'face face-front';
+      front.textContent = symbol;
+
+      card.appendChild(back);
+      card.appendChild(front);
+      cell.appendChild(card);
+      board.appendChild(cell);
+
+      card.addEventListener('click', () => onCardClick(card, idx));
+    });
+  }
+
+  function onCardClick(card, idx){
+    if(lockBoard) return;
+    if(card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+    startTimer();
+    card.classList.add('flipped');
+    flipped.push({ card, idx });
+
+    if(flipped.length === 2){
+      moves++;
+      movesEl.textContent = moves;
+      lockBoard = true;
+      const [a, b] = flipped;
+      if(deck[a.idx] === deck[b.idx]){
+        setTimeout(() => {
+          a.card.classList.add('matched');
+          b.card.classList.add('matched');
+          flipped = [];
+          lockBoard = false;
+          matchedCount += 2;
+          if(matchedCount === deck.length){
+            stopTimer();
+            maybeUpdateBest();
+            winBanner.classList.add('show');
+          }
+        }, 380);
+      } else {
+        a.card.classList.add('mismatch');
+        b.card.classList.add('mismatch');
+        setTimeout(() => {
+          a.card.classList.remove('flipped', 'mismatch');
+          b.card.classList.remove('flipped', 'mismatch');
+          flipped = [];
+          lockBoard = false;
+        }, 800);
+      }
+    }
+  }
+
+  function newGame(){
+    deck = buildDeck();
+    flipped = [];
+    matchedCount = 0;
+    moves = 0;
+    seconds = 0;
+    lockBoard = false;
+    stopTimer();
+    movesEl.textContent = '0';
+    timerEl.textContent = '0:00';
+    winBanner.classList.remove('show');
+    render();
+  }
+
+  resetBtn.addEventListener('click', newGame);
+
+  loadBest();
+  newGame();
+</script>
+</body>
+</html>
