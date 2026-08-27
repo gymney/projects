@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="upload-box">
+  <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept="video/*">
+    <button type="submit">Upload &amp; process</button>
+  </form>
+  <div class="clip-meta">
+    Or drop a finished recording into <code>{{ incoming_dir }}</code>
+    &mdash; it'll be picked up automatically once it stops growing.
+  </div>
+</div>
+
+{% if clips %}
+<div class="clip-grid">
+  {% for clip in clips %}
+  <div class="clip-card" data-clip-id="{{ clip['id'] }}">
+    <video controls preload="metadata">
+      <source src="{{ url_for('media', clip_id=clip['id']) }}" type="video/mp4">
+    </video>
+    <div class="clip-meta">
+      {{ clip['source_file'].split('/')[-1] }}<br>
+      {{ "%.1f"|format(clip['start_time']) }}s &ndash; {{ "%.1f"|format(clip['end_time']) }}s
+      ({{ "%.1f"|format(clip['end_time'] - clip['start_time']) }}s clip)
+    </div>
+
+    <div class="trim-wrap">
+      <div class="trim-label">Trim: <span class="trim-range-text">full clip</span></div>
+      <div class="trim-slider">
+        <input type="range" class="trim-start-slider" min="0" max="1000" value="0" step="1">
+        <input type="range" class="trim-end-slider" min="0" max="1000" value="1000" step="1">
+      </div>
+      <button type="button" class="preview-trim-btn">Preview trim</button>
+    </div>
+
+    <div class="clip-actions">
+      <form action="{{ url_for('approve', clip_id=clip['id']) }}" method="post" class="approve-form" style="display:flex; gap:8px;">
+        <select name="category">
+          {% for c in categories %}
+          <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+        <input type="hidden" name="trim_start" class="trim-start-input" value="0">
+        <input type="hidden" name="trim_end" class="trim-end-input" value="">
+        <input type="hidden" name="clip_duration" class="clip-duration-input" value="">
+        <button type="submit" class="approve">Approve</button>
+      </form>
+      <form action="{{ url_for('reject', clip_id=clip['id']) }}" method="post">
+        <button type="submit" class="reject">Reject</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">No candidate clips waiting for review right now.</div>
+{% endif %}
+
+<script>
+// Each clip card gets its own dual-range trim slider. Slider units are
+// 0-1000 (fraction of the clip's actual duration, read from the video
+// element once its metadata loads) rather than raw seconds, since we don't
+// know each clip's exact duration until the browser tells us.
+document.querySelectorAll(".clip-card").forEach(function (card) {
+  const video = card.querySelector("video");
+  const startSlider = card.querySelector(".trim-start-slider");
+  const endSlider = card.querySelector(".trim-end-slider");
+  const rangeText = card.querySelector(".trim-range-text");
+  const previewBtn = card.querySelector(".preview-trim-btn");
+  const hiddenStart = card.querySelector(".trim-start-input");
+  const hiddenEnd = card.querySelector(".trim-end-input");
+  const hiddenDuration = card.querySelector(".clip-duration-input");
+
+  const MIN_GAP = 15; // out of 1000 -- keeps the two handles from crossing / a zero-length trim
+  let duration = 0;
+  let previewTimer = null;
+
+  function sliderToSeconds(val) {
+    return (val / 1000) * duration;
+  }
+
+  function refresh() {
+    const startSec = sliderToSeconds(parseFloat(startSlider.value));
+    const endSec = sliderToSeconds(parseFloat(endSlider.value));
+    hiddenStart.value = startSec.toFixed(2);
+    hiddenEnd.value = endSec.toFixed(2);
+    hiddenDuration.value = duration.toFixed(2);
+
+    const isFullRange = parseFloat(startSlider.value) <= 0 && parseFloat(endSlider.value) >= 1000;
+    rangeText.textContent = isFullRange
+      ? "full clip"
+      : startSec.toFixed(1) + "s \u2013 " + endSec.toFixed(1) + "s (" + (endSec - startSec).toFixed(1) + "s)";
+  }
+
+  video.addEventListener("loadedmetadata", function () {
+    duration = video.duration || 0;
+    refresh();
+  });
+
+  startSlider.addEventListener("input", function () {
+    if (parseFloat(startSlider.value) > parseFloat(endSlider.value) - MIN_GAP) {
+      startSlider.value = Math.max(0, parseFloat(endSlider.value) - MIN_GAP);
+    }
+    refresh();
+    if (duration) video.currentTime = sliderToSeconds(parseFloat(startSlider.value));
+  });
+
+  endSlider.addEventListener("input", function () {
+    if (parseFloat(endSlider.value) < parseFloat(startSlider.value) + MIN_GAP) {
+      endSlider.value = Math.min(1000, parseFloat(startSlider.value) + MIN_GAP);
+    }
+    refresh();
+    if (duration) video.currentTime = sliderToSeconds(parseFloat(endSlider.value));
+  });
+
+  previewBtn.addEventListener("click", function () {
+    if (!duration) return;
+    clearTimeout(previewTimer);
+    const startSec = sliderToSeconds(parseFloat(startSlider.value));
+    const endSec = sliderToSeconds(parseFloat(endSlider.value));
+    video.currentTime = startSec;
+    video.play();
+    previewTimer = setTimeout(function () {
+      video.pause();
+    }, Math.max(0, (endSec - startSec) * 1000));
+  });
+});
+</script>
+
+{% endblock %}

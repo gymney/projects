@@ -20,6 +20,36 @@
     button.approve { background: #2f6b3f; border-color: #3d8a52; cursor: pointer; }
     button.reject { background: #6b2f2f; border-color: #8a3d3d; cursor: pointer; }
     .empty { color: #888; padding: 40px 0; text-align: center; }
+
+    .trim-wrap { margin: 10px 0; }
+    .trim-label { font-size: 12px; color: #999; margin-bottom: 6px; }
+    .trim-range-text { color: #7dbbff; }
+    .trim-slider { position: relative; height: 28px; }
+    .trim-slider input[type="range"] {
+      position: absolute; top: 0; left: 0; width: 100%; margin: 0;
+      -webkit-appearance: none; appearance: none; background: transparent;
+      pointer-events: none; /* only the thumb should be draggable */
+    }
+    .trim-slider input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px; background: #333; border-radius: 2px;
+    }
+    .trim-slider input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; pointer-events: auto;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #7dbbff; border: 2px solid #16181d; margin-top: -5px; cursor: pointer;
+    }
+    .trim-slider input[type="range"]::-moz-range-track {
+      height: 4px; background: #333; border-radius: 2px;
+    }
+    .trim-slider input[type="range"]::-moz-range-thumb {
+      pointer-events: auto; width: 14px; height: 14px; border-radius: 50%;
+      background: #7dbbff; border: 2px solid #16181d; cursor: pointer;
+    }
+    .preview-trim-btn {
+      margin-top: 6px; background: #2a2e38; border: 1px solid #444; color: #7dbbff;
+      border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+    }
+    .preview-trim-btn:hover { background: #333844; }
   </style>
 </head>
 <body>

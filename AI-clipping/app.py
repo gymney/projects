@@ -6,6 +6,7 @@ from flask import Flask, request, redirect, url_for, send_file, render_template,
 
 import config
 import db
+import cutter
 from processor import process_file
 from watcher import start_watcher_thread
 
@@ -74,7 +75,42 @@ def approve(clip_id):
     dest_dir = os.path.join(config.APPROVED_DIR, category)
     os.makedirs(dest_dir, exist_ok=True)
     dest_path = os.path.join(dest_dir, os.path.basename(clip["clip_path"]))
-    shutil.move(clip["clip_path"], dest_path)
+
+    trim_start_raw = request.form.get("trim_start")
+    trim_end_raw = request.form.get("trim_end")
+
+    used_trim = False
+    if trim_start_raw is not None and trim_end_raw is not None:
+        try:
+            trim_start = float(trim_start_raw)
+            trim_end = float(trim_end_raw)
+        except ValueError:
+            trim_start = trim_end = None
+
+        # Only bother re-encoding if the trim actually shrinks the clip by
+        # a meaningful amount -- a slider left at its full-range defaults
+        # shouldn't cost an extra encode pass.
+        if trim_start is not None and trim_end is not None and trim_end > trim_start:
+            full_duration_raw = request.form.get("clip_duration")
+            try:
+                full_duration = float(full_duration_raw) if full_duration_raw else None
+            except ValueError:
+                full_duration = None
+
+            meaningfully_trimmed = trim_start > 0.15 or (
+                full_duration is not None and trim_end < full_duration - 0.15
+            )
+            if meaningfully_trimmed:
+                try:
+                    cutter.cut_clip(clip["clip_path"], trim_start, trim_end, dest_path)
+                    os.remove(clip["clip_path"])
+                    used_trim = True
+                except RuntimeError as e:
+                    flash(f"Trim failed, approved the untrimmed clip instead: {e}")
+
+    if not used_trim:
+        shutil.move(clip["clip_path"], dest_path)
+
     db.update_status(clip_id, "approved", category)
     # keep the clip's db row pointing at its new location
     with db.get_conn() as conn:

@@ -97,6 +97,30 @@ All settings (folder paths, video extensions, category list, and detection
 tuning — sensitivity, clip padding, min/max clip length) live in
 `config.py`.
 
+## Trim slider
+
+Each candidate clip on the review page now has a dual-range slider under
+the video. Drag either handle to scrub the video to that point and preview
+a tighter start/end than what auto-detection originally cut. A "Preview
+trim" button plays just the selected range so you can check it before
+committing.
+
+- Nothing is re-encoded until you hit **Approve** — the slider is just
+  scrubbing the existing candidate clip in the browser.
+- On approve, if you actually moved a handle, the clip gets re-cut down to
+  exactly that range before landing in `approved/<category>/`. If you leave
+  the slider untouched (or an older client submits without trim data at
+  all), it just moves the original clip as before — no wasted re-encode.
+- Trimming only shortens the clip's start/end within what was already cut
+  (it can't extend past the original candidate's boundaries) — if
+  auto-detection's padding wasn't generous enough, that's a
+  `PRE_PADDING`/`POST_PADDING` tuning change in `config.py`, not something
+  the slider can fix after the fact.
+
+Tested: both the untouched-slider path (plain move, correct duration) and
+an actual trim (re-cut to the exact requested sub-range) confirmed to
+produce clips of the right length.
+
 ## Known issues / recent fixes
 
 - **Fixed:** the folder watcher previously forgot that it had already
