@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Add Course - Disc Golf Tracker{% endblock %}
+{% block content %}
+<h2>Add a Course</h2>
+
+<form method="get" action="{{ url_for('add_course') }}" id="holeCountForm">
+  <label for="holes">Number of holes</label>
+  <input type="number" id="holes" name="holes" value="{{ num_holes }}" min="1" max="36"
+         onchange="document.getElementById('holeCountForm').submit();">
+</form>
+
+<form method="post" action="{{ url_for('add_course') }}">
+  <input type="hidden" name="num_holes" value="{{ num_holes }}">
+
+  <label for="name">Course name</label>
+  <input type="text" id="name" name="name" required>
+
+  <label for="location">Location (optional)</label>
+  <input type="text" id="location" name="location">
+
+  <h3>Holes</h3>
+  <div class="hole-grid">
+    <div class="hole-label">Hole</div>
+    <div class="hole-label">Par</div>
+    <div class="hole-label">Distance (ft, optional)</div>
+    {% for h in range(1, num_holes + 1) %}
+      <div class="hole-label">{{ h }}</div>
+      <input type="number" name="par_{{ h }}" value="3" min="1">
+      <input type="number" name="dist_{{ h }}" placeholder="—">
+    {% endfor %}
+  </div>
+
+  <div class="btn-row">
+    <button type="submit" class="btn">Save Course</button>
+    <a class="btn btn-danger" href="{{ url_for('home') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Stats - Disc Golf Tracker{% endblock %}
+{% block content %}
+<h2>Stats</h2>
+
+{% if stats.round_count == 0 %}
+  <div class="empty-state">No rounds logged yet — nothing to show.</div>
+{% else %}
+  <p class="stat-line"><span class="label">Total rounds logged:</span> {{ stats.round_count }}</p>
+
+  {% for c in stats.courses %}
+  <div class="stat-block">
+    <div class="stat-title">{{ c.name }} ({{ c.round_count }} round{{ 's' if c.round_count != 1 else '' }})</div>
+    <div class="stat-line"><span class="label">Average vs par:</span> {{ "%+.1f"|format(c.avg_diff) }}</div>
+    <div class="stat-line"><span class="label">Best round:</span> {{ c.best_strokes }} strokes ({{ c.best_diff_str }}) on {{ c.best_date }}</div>
+    {% if c.trend_label %}
+    <div class="stat-line"><span class="label">Trend:</span> {{ c.trend_label }} ({{ "%+.1f"|format(c.trend_val) }} strokes vs par, earlier half to later half)</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  {% if stats.toughest_hole %}
+  <div class="stat-block">
+    <div class="stat-title">Toughest Hole Overall</div>
+    <div class="stat-line">{{ stats.toughest_hole.course_name }} hole {{ stats.toughest_hole.hole_number }} (par {{ stats.toughest_hole.par }}), averaging {{ "%+.2f"|format(stats.toughest_hole.avg_over) }} over par.</div>
+  </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Courses - Disc Golf Tracker{% endblock %}
+{% block content %}
+<h2>Courses</h2>
+
+{% if courses %}
+  {% for c in courses %}
+  <div class="course-card">
+    <div>
+      <div class="name">{{ c.name }}{% if c.location %} <span class="meta">— {{ c.location }}</span>{% endif %}</div>
+      <div class="meta">{{ c.hole_count }} holes &middot; par {{ c.total_par }}</div>
+    </div>
+    <div class="btn-row" style="margin-top:0;">
+      <a class="btn" href="{{ url_for('log_round', course_id=c.id) }}">Log Round</a>
+      <form method="post" action="{{ url_for('delete_course', course_id=c.id) }}" onsubmit="return confirm('Delete {{ c.name }} and all its rounds?');" style="display:inline;">
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state">No courses yet — add your first one below.</div>
+{% endif %}
+
+<div class="btn-row">
+  <a class="btn" href="{{ url_for('add_course') }}">+ Add a Course</a>
+</div>
+{% endblock %}

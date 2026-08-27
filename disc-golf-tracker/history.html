@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}History - Disc Golf Tracker{% endblock %}
+{% block content %}
+<h2>Round History</h2>
+
+{% if rounds %}
+<table>
+  <thead>
+    <tr><th>Date</th><th>Course</th><th>Score</th><th>vs Par</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rounds %}
+    <tr>
+      <td>{{ r.played_on }}</td>
+      <td>{{ r.course_name }}</td>
+      <td>{{ r.total_strokes }}</td>
+      <td class="{% if r.diff < 0 %}diff-under{% elif r.diff > 0 %}diff-over{% else %}diff-even{% endif %}">{{ r.diff_str }}</td>
+      <td>{{ r.notes or "" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <div class="empty-state">No rounds logged yet.</div>
+{% endif %}
+{% endblock %}

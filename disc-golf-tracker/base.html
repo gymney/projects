@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{% block title %}Disc Golf Tracker{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Spectral:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="stage">
+  <div class="masthead">
+    <h1><a href="{{ url_for('home') }}">Disc Golf Tracker</a></h1>
+    <div class="sub">COURSES &middot; ROUNDS &middot; STATS</div>
+  </div>
+
+  <nav class="tabs">
+    <a class="tab {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Courses</a>
+    <a class="tab {% if request.endpoint == 'log_round' %}active{% endif %}" href="{{ url_for('log_round') }}">Log Round</a>
+    <a class="tab {% if request.endpoint == 'history' %}active{% endif %}" href="{{ url_for('history') }}">History</a>
+    <a class="tab {% if request.endpoint == 'stats' %}active{% endif %}" href="{{ url_for('stats') }}">Stats</a>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-wrap">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="panel">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Log a Round - Disc Golf Tracker{% endblock %}
+{% block content %}
+<h2>Log a Round</h2>
+
+{% if not courses %}
+  <div class="empty-state">No courses yet — <a class="btn" href="{{ url_for('add_course') }}">add one first</a>.</div>
+{% else %}
+
+<form method="get" action="{{ url_for('log_round') }}" id="courseSelectForm">
+  <label for="course_id">Course</label>
+  <select id="course_id" name="course_id" onchange="document.getElementById('courseSelectForm').submit();">
+    <option value="">-- choose a course --</option>
+    {% for c in courses %}
+      <option value="{{ c.id }}" {% if selected_course and selected_course.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+{% if selected_course %}
+<form method="post" action="{{ url_for('log_round') }}">
+  <input type="hidden" name="course_id" value="{{ selected_course.id }}">
+
+  <label for="played_on">Date played</label>
+  <input type="date" id="played_on" name="played_on" value="{{ today }}">
+
+  <label for="notes">Notes (optional)</label>
+  <textarea id="notes" name="notes"></textarea>
+
+  <h3>Scores — {{ selected_course.name }}</h3>
+  <div class="score-grid">
+    {% for hole in selected_course.holes %}
+    <div class="score-cell">
+      <div class="par-label">Hole {{ hole.hole_number }} (par {{ hole.par }})</div>
+      <input type="number" name="strokes_{{ hole.hole_number }}" value="{{ hole.par }}" min="1">
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="btn-row">
+    <button type="submit" class="btn">Save Round</button>
+    <a class="btn btn-danger" href="{{ url_for('home') }}">Cancel</a>
+  </div>
+</form>
+{% endif %}
+
+{% endif %}
+{% endblock %}
