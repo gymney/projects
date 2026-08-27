@@ -38,7 +38,7 @@
 
   .project-list{ display:flex; flex-direction:column; gap: 14px; }
 
-  .project-card{
+  .minigame-card{
     background: var(--panel);
     border: 1px solid var(--panel-edge);
     border-radius: 12px;
@@ -51,18 +51,18 @@
     color: inherit;
     transition: border-color 0.2s ease, transform 0.15s ease, background 0.2s ease;
   }
-  .project-card:hover{
+  .minigame-card:hover{
     border-color: var(--gold);
     background: rgba(201,164,97,0.06);
     transform: translateX(2px);
   }
-  .project-card .info{ min-width: 0; }
-  .project-card .name{
+  .minigame-card .info{ min-width: 0; }
+  .minigame-card .name{
     font-family:'Cinzel', serif; font-size: 16.5px; color: var(--gold-bright);
     letter-spacing: 0.02em; margin-bottom: 4px;
   }
-  .project-card .desc{ font-size: 13.5px; color: var(--muted); line-height: 1.4; }
-  .project-card .arrow{
+  .minigame-card .desc{ font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+  .minigame-card .arrow{
     font-family:'IBM Plex Mono', monospace; color: var(--gold);
     font-size: 18px; flex-shrink: 0;
   }
@@ -82,7 +82,7 @@
 
   <div class="Minigame-list">
 
-    <a class="Minigame-card" href="rune-match/index.html">
+    <a class="minigame-card" href="rune-match/index.html">
       <div class="info">
         <div class="name">QuestBound</div>
         <div class="desc">RPG habit and goal tracker — real tasks deal damage to bosses, solo or with a party.</div>
@@ -90,7 +90,7 @@
       <div class="arrow">&rarr;</div>
     </a>
 
-    <a class="Minigame-card" href="shortcut-sigils/index.html">
+    <a class="minigame-card" href="shortcut-sigils/index.html">
       <div class="info">
         <div class="name">Disc Golf Course Tracker</div>
         <div class="desc">Log courses and rounds, track scores against par, see stats and trends over time.</div>
