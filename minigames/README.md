@@ -47,3 +47,4 @@ lost again.
 upcoming
 - new size selection for rune match
 - index.html that redirects to each minigame
+- faster animation to be able to click quicker in rune match
