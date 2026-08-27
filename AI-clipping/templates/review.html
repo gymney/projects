@@ -57,6 +57,11 @@
 <div class="empty">No candidate clips waiting for review right now.</div>
 {% endif %}
 
+<details class="log-panel">
+  <summary>Processing log</summary>
+  <pre id="logOutput">Loading&hellip;</pre>
+</details>
+
 <script>
 // Each clip card gets its own dual-range trim slider. Slider units are
 // 0-1000 (fraction of the clip's actual duration, read from the video
@@ -126,6 +131,35 @@ document.querySelectorAll(".clip-card").forEach(function (card) {
     }, Math.max(0, (endSec - startSec) * 1000));
   });
 });
+
+// Collapsible processing log -- only polls the server while the panel is
+// actually open, so it's not making requests every few seconds for no
+// reason when nobody's looking at it.
+(function () {
+  const details = document.querySelector(".log-panel");
+  const output = document.getElementById("logOutput");
+  let pollTimer = null;
+
+  function fetchLogs() {
+    fetch("/api/logs")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        const wasAtBottom = output.scrollTop + output.clientHeight >= output.scrollHeight - 10;
+        output.textContent = data.lines.join("\n") || "(no log output yet)";
+        if (wasAtBottom) output.scrollTop = output.scrollHeight;
+      })
+      .catch(function () { /* server may be mid-restart, just skip this tick */ });
+  }
+
+  details.addEventListener("toggle", function () {
+    if (details.open) {
+      fetchLogs();
+      pollTimer = setInterval(fetchLogs, 3000);
+    } else {
+      clearInterval(pollTimer);
+    }
+  });
+})();
 </script>
 
 {% endblock %}

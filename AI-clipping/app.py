@@ -2,11 +2,12 @@ import os
 import shutil
 import threading
 
-from flask import Flask, request, redirect, url_for, send_file, render_template, flash
+from flask import Flask, request, redirect, url_for, send_file, render_template, flash, jsonify
 
 import config
 import db
 import cutter
+import logs
 from processor import process_file
 from watcher import start_watcher_thread
 
@@ -19,6 +20,11 @@ def review_queue():
     pending = db.list_clips(status="pending")
     return render_template("review.html", clips=pending, categories=config.CATEGORIES,
                             incoming_dir=config.INCOMING_DIR)
+
+
+@app.route("/api/logs")
+def api_logs():
+    return jsonify(lines=logs.get_recent(300))
 
 
 @app.route("/history")
@@ -51,7 +57,7 @@ def upload():
         try:
             process_file(dest_path)
         except Exception as e:
-            print(f"[upload] error processing {dest_path}: {e}")
+            logs.log(f"[upload] error processing {dest_path}: {e}")
 
     threading.Thread(target=run, daemon=True).start()
     flash(f"Uploaded {file.filename} -- processing in the background, refresh in a bit.")
@@ -137,5 +143,5 @@ def reject(clip_id):
 if __name__ == "__main__":
     db.init_db()
     start_watcher_thread()
-    print(f"[app] drop files in {config.INCOMING_DIR} or upload via the web page")
+    logs.log(f"[app] drop files in {config.INCOMING_DIR} or upload via the web page")
     app.run(host="127.0.0.1", port=5000, debug=False)

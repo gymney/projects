@@ -97,6 +97,29 @@ All settings (folder paths, video extensions, category list, and detection
 tuning — sensitivity, clip padding, min/max clip length) live in
 `config.py`.
 
+## Progress logging
+
+Long files no longer go dark. Every step now logs through a shared
+in-memory buffer (`logs.py`) instead of a bare `print()`:
+
+- Audio scanning logs a start line (with total duration if ffprobe can read
+  it), then a progress line roughly every 10 seconds of wall-clock time
+  with minutes scanned, percent, and an ETA.
+- Clip cutting logs progress roughly every 10 seconds too ("cut 6/340
+  clip(s) so far"), and **always** logs a final "done" line regardless of
+  timing, so even a fast job never looks like it silently finished (or
+  silently died).
+- All of this is visible two ways: in the console (same as before), and in
+  a collapsible "Processing log" panel at the bottom of the review page
+  that polls `/api/logs` every few seconds — only while you actually have
+  it open, so it's not hammering the server in the background for no
+  reason.
+
+This addresses what a 4.5-hour file looked like before: it wasn't actually
+crashing, it was cutting hundreds of flagged clips one at a time with zero
+output in between, which is indistinguishable from hung. Now you'll see
+exactly where it is.
+
 ## Trim slider
 
 Each candidate clip on the review page now has a dual-range slider under

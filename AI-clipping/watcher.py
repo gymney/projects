@@ -12,6 +12,7 @@ import threading
 
 import config
 from processor import process_file
+from logs import log
 
 
 def _is_video_file(path):
@@ -41,7 +42,7 @@ def _wait_until_stable(path):
 
 def _watch_loop(stop_event):
     seen = set()
-    print(f"[watcher] watching {config.INCOMING_DIR}")
+    log(f"[watcher] watching {config.INCOMING_DIR}")
     while not stop_event.is_set():
         try:
             for name in os.listdir(config.INCOMING_DIR):
@@ -51,7 +52,7 @@ def _watch_loop(stop_event):
                 seen.add(path)
 
                 def handle(p=path):
-                    print(f"[watcher] new file detected: {p} -- waiting for it to finish writing")
+                    log(f"[watcher] new file detected: {p} -- waiting for it to finish writing")
                     if _wait_until_stable(p):
                         try:
                             process_file(p)
@@ -62,7 +63,7 @@ def _watch_loop(stop_event):
                             # every scan forever.
                             return
                         except Exception as e:
-                            print(f"[watcher] error processing {p}: {e}")
+                            log(f"[watcher] error processing {p}: {e}")
                             # Fall through and discard so a transient error (e.g. a
                             # one-off ffmpeg hiccup) can be retried on the next scan.
                     else:
