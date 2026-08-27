@@ -55,8 +55,19 @@ def _watch_loop(stop_event):
                     if _wait_until_stable(p):
                         try:
                             process_file(p)
+                            # Successfully handled (or already-processed via the dedup
+                            # guard in process_file) -- leave it in `seen` permanently
+                            # so a file that's never moved out of INCOMING_DIR doesn't
+                            # get re-detected and re-queued for a stability wait on
+                            # every scan forever.
+                            return
                         except Exception as e:
                             print(f"[watcher] error processing {p}: {e}")
+                            # Fall through and discard so a transient error (e.g. a
+                            # one-off ffmpeg hiccup) can be retried on the next scan.
+                    else:
+                        # File disappeared mid-wait -- also fine to retry if it reappears.
+                        pass
                     seen.discard(p)
 
                 threading.Thread(target=handle, daemon=True).start()
